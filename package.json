@@ -1,0 +1,9 @@
+{
+  "name": "codenames-turkce",
+  "version": "1.0.0",
+  "description": "Codenames Türkçe - Lokal WiFi Multiplayer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

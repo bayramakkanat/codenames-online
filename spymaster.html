@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Codenames — Spymaster</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&display=swap');
+  :root{
+    --bg:#080a0d;--sur:#12141a;--sur2:#1a1d26;
+    --kr:#c0392b;--kr-l:#e74c3c;--kr-g:rgba(231,76,60,.2);
+    --mv:#1a6fa8;--mv-l:#2980b9;--mv-g:rgba(41,128,185,.2);
+    --gold:#f0c040;--text:#e8eaf2;--dim:#606880;
+    --bdr:rgba(255,255,255,.07);--r:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+  /* HEADER */
+  .hdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+  .logo-sm{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold)}
+  .role-badge{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:rgba(240,192,64,.12);color:var(--gold);border:1px solid rgba(240,192,64,.35)}
+
+  /* Sıradaki takım */
+  .sira-hap{margin-left:auto;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:5px 13px;border-radius:20px;transition:all .4s}
+  .sira-hap.kr{background:var(--kr-g);color:var(--kr-l);border:1px solid var(--kr)}
+  .sira-hap.mv{background:var(--mv-g);color:var(--mv-l);border:1px solid var(--mv)}
+
+  /* SKOR */
+  .score-bar{display:flex;background:var(--sur2);border-bottom:1px solid var(--bdr)}
+  .sc-half{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px}
+  .sc-half:first-child{border-right:1px solid var(--bdr)}
+  .sc-half .lbl{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--dim)}
+  .sc-half .num{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1}
+  .sc-half.kr .num{color:var(--kr-l)} .sc-half.mv .num{color:var(--mv-l)}
+
+  /* KART RENK AÇIKLAMASI */
+  .legend{display:flex;gap:10px;padding:10px 12px 4px;flex-wrap:wrap}
+  .leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
+  .leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+  .leg-dot.kr{background:var(--kr)} .leg-dot.mv{background:var(--mv)}
+  .leg-dot.sk{background:#0a0a0a;border:1px solid #e74c3c}
+  .leg-dot.ms{background:#d1c5a9;border:1px solid #bba87f}
+
+  /* GRID */
+  .grid-title{padding:0 12px 5px;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--dim)}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:0 8px 14px}
+
+  .kart{border-radius:6px;display:flex;align-items:center;justify-content:center;aspect-ratio:1.5/1;min-height:50px;position:relative;overflow:hidden;transition:opacity .3s}
+  .kart .kel{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:clamp(9px,3.2vw,13px);text-align:center;padding:2px;text-transform:uppercase;line-height:1.1;color:#fff;word-break:break-word}
+
+  .kart.kr{background:var(--kr);box-shadow:0 0 6px rgba(192,57,43,.5)}
+  .kart.mv{background:var(--mv);box-shadow:0 0 6px rgba(26,111,168,.5)}
+  .kart.ms{background:#d1c5a9;border:1px solid #bba87f}
+  .kart.ms .kel{color:#4a412b}
+  .kart.sk{background:#0a0a0a;border:1px solid #e74c3c;box-shadow:inset 0 0 12px rgba(231,76,60,.15)}
+  .kart.sk .kel{color:#e74c3c;position:relative;z-index:1}
+  .kart.sk::before{content:'💀';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;opacity:0.18;z-index:0}
+
+  /* Açık kartlar (tablet'te basıldıktan sonra) */
+  .kart.acik{opacity:.28}
+  .kart.acik::after{content:'✓';position:absolute;font-size:20px;color:rgba(255,255,255,.5)}
+
+  /* TUR GEÇ BUTONU */
+  .btn-tur{width:calc(100% - 24px);margin:0 12px 10px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:transparent;color:var(--dim);border:1px solid var(--bdr);border-radius:var(--r);cursor:pointer;transition:all .2s}
+  .btn-tur:hover{border-color:rgba(255,255,255,.18);color:var(--text)}
+  .btn-tur:active{transform:scale(.98)}
+  .btn-tur:disabled{opacity:.3;cursor:default}
+
+  /* KAZANAN BANNER */
+  .kaz-banner{margin:12px;padding:18px;border-radius:12px;text-align:center;display:none}
+  .kaz-banner.goster{display:block}
+  .kaz-banner.kr{background:var(--kr-g);border:1px solid var(--kr)}
+  .kaz-banner.mv{background:var(--mv-g);border:1px solid var(--mv)}
+  .kaz-banner.sk{background:rgba(0,0,0,.4);border:1px solid #333}
+  .kaz-bas{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px}
+  .kaz-banner.kr .kaz-bas{color:var(--kr-l)}
+  .kaz-banner.mv .kaz-bas{color:var(--mv-l)}
+  .kaz-banner.sk .kaz-bas{color:#666}
+
+  /* BAĞLANTI */
+  .conn{position:fixed;bottom:8px;right:12px;font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;background:var(--sur);padding:4px 10px;border-radius:20px;border:1px solid var(--bdr)}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .dot.ok{background:#2ecc71;animation:blink 2s infinite}
+  .dot.no{background:#e74c3c}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* Sıradaki değil uyarısı */
+  .uyari{margin:0 12px 10px;padding:10px 14px;background:rgba(240,192,64,.08);border:1px solid rgba(240,192,64,.25);border-radius:var(--r);font-size:13px;color:var(--gold);text-align:center;line-height:1.5;display:none}
+  .uyari.goster{display:block}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span class="logo-sm">CODENAMES</span>
+  <span class="role-badge">🕵️ Spymaster</span>
+  <span class="sira-hap kr" id="sira-hap">Kırmızı Oynuyor</span>
+</div>
+
+<div class="score-bar">
+  <div class="sc-half kr">
+    <div class="lbl">🔴 Kırmızı kalan</div>
+    <div class="num" id="num-kr">9</div>
+  </div>
+  <div class="sc-half mv">
+    <div class="lbl">🔵 Mavi kalan</div>
+    <div class="num" id="num-mv">8</div>
+  </div>
+</div>
+
+<div class="uyari" id="uyari"></div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot kr"></div>Kırmızı (9)</div>
+  <div class="leg"><div class="leg-dot mv"></div>Mavi (8)</div>
+  <div class="leg"><div class="leg-dot sk"></div>💀 Suikastçı</div>
+  <div class="leg"><div class="leg-dot ms"></div>Masum (7)</div>
+</div>
+
+<div class="grid-title">Renk Haritası</div>
+<div class="grid" id="grid"></div>
+
+<div class="kaz-banner" id="kaz-banner">
+  <div class="kaz-bas" id="kaz-bas">KIRMIZI KAZANDI 🏆</div>
+</div>
+
+<button class="btn-tur" id="btn-tur" onclick="turGec()">⏭ Turu Geç (Pas)</button>
+
+<div class="conn">
+  <div class="dot ok" id="conn-dot"></div>
+  <span id="conn-txt">Bağlı</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+<script>
+let oyun=null, isUpdating=false;
+
+async function sunAl(){
+  if(isUpdating)return;
+  try{
+    const r=await fetch('/api/state');
+    const v=await r.json();
+    if(isUpdating)return;
+    if(!v||!v.kartlar)return;
+    const degisti=!oyun||JSON.stringify(v)!==JSON.stringify(oyun);
+    oyun=v;
+    if(degisti)render();
+    document.getElementById('conn-dot').className='dot ok';
+    document.getElementById('conn-txt').textContent='Bağlı';
+  }catch(e){
+    document.getElementById('conn-dot').className='dot no';
+    document.getElementById('conn-txt').textContent='Bağlantı yok';
+  }
+}
+
+async function sunGonder(){
+  isUpdating=true;
+  try{
+    await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(oyun)});
+  }catch(e){}
+  isUpdating=false;
+}
+
+async function turGec(){
+  if(!oyun||oyun.bitti)return;
+  oyun.sira=oyun.sira==='kr'?'mv':'kr';
+  await sunGonder();
+  render();
+}
+
+function render(){
+  if(!oyun)return;
+  renderGrid();
+  renderSkors();
+  renderDurum();
+}
+
+function renderGrid(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  oyun.kartlar.forEach(kart=>{
+    const d=document.createElement('div');
+    d.className='kart '+kart.r+(kart.a?' acik':'');
+    d.innerHTML=`<span class="kel">${kart.k}</span>`;
+    grid.appendChild(d);
+  });
+}
+
+function renderSkors(){
+  document.getElementById('num-kr').textContent=oyun.krH-oyun.kr;
+  document.getElementById('num-mv').textContent=oyun.mvH-oyun.mv;
+  const hap=document.getElementById('sira-hap');
+  hap.className='sira-hap '+oyun.sira;
+  hap.textContent=oyun.sira==='kr'?'🔴 Kırmızı Oynuyor':'🔵 Mavi Oynuyor';
+}
+
+function renderDurum(){
+  const kaz=document.getElementById('kaz-banner');
+  const tur=document.getElementById('btn-tur');
+  const uy=document.getElementById('uyari');
+
+  if(oyun.bitti){
+    kaz.classList.add('goster');
+    kaz.className='kaz-banner goster '+(oyun.kazanan==='sk'?'sk':oyun.kazanan);
+    let msg='';
+    if(oyun.kazanan==='sk') msg='💀 Suikastçı Bulundu!';
+    else msg=(oyun.kazanan==='kr'?'🔴 Kırmızı':'🔵 Mavi')+' Kazandı! 🏆';
+    document.getElementById('kaz-bas').textContent=msg;
+    tur.disabled=true;
+    uy.classList.remove('goster');
+  } else {
+    kaz.classList.remove('goster');
+    tur.disabled=false;
+  }
+}
+
+function beklemeMesaji(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px 16px;color:#606880;font-size:14px;letter-spacing:1px;line-height:2;">⏳ Tablet bağlantısı bekleniyor...<br><span style="font-size:11px;opacity:.6">Tablet açık ve aynı WiFi\'da olmalı</span><br><br><button onclick="location.reload()" style="font-family:sans-serif;font-size:13px;font-weight:700;padding:10px 28px;border-radius:8px;border:1px solid rgba(240,192,64,.4);background:transparent;color:#f0c040;cursor:pointer;">🔄 Yenile</button></div>';
+}
+
+const noSleep = new NoSleep();
+let uykuEngellendi = false;
+let wakeLock = null;
+
+async function keepScreenAwake() {
+  if (uykuEngellendi) return;
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      uykuEngellendi = true;
+      wakeLock.addEventListener('release', () => { uykuEngellendi = false; });
+    } else {
+      noSleep.enable();
+      uykuEngellendi = true;
+    }
+  } catch (err) {
+    try { noSleep.enable(); uykuEngellendi = true; } catch(e) {}
+  }
+}
+
+document.addEventListener('click', keepScreenAwake);
+document.addEventListener('touchstart', keepScreenAwake);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    keepScreenAwake();
+  }
+});
+
+window.addEventListener('load',async()=>{
+  beklemeMesaji();
+  // İlk 5 saniye her 500ms'de dene (hızlı bağlanma)
+  let deneme=0;
+  const hizliDene=setInterval(async()=>{
+    await sunAl();
+    deneme++;
+    if(oyun||deneme>10)clearInterval(hizliDene);
+  },500);
+  // Sonra normal polling
+  setInterval(sunAl,1500);
+});
+</script>
+</body>
+</html>
