@@ -1,25 +1,10 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 
-// Get local IP address
-function getLocalIP() {
-  const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address;
-      }
-    }
-  }
-  return 'localhost';
-}
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 3456;
-const LOCAL_IP = getLocalIP();
-
-// Game state (shared in memory)
+// Oyun durumu (hafızada tutuluyor)
 let gameState = null;
 
 function getContentType(ext) {
@@ -28,10 +13,10 @@ function getContentType(ext) {
 }
 
 const server = http.createServer((req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
-  // CORS headers
+  // CORS ayarları
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -72,7 +57,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve files
+  // Dosya sunma
   let filePath = pathname === '/' ? '/tablet.html' : pathname;
   filePath = path.join(__dirname, filePath);
 
@@ -87,10 +72,9 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('\n🎮 CODENAMES TÜRKÇE - Sunucu Başlatıldı!\n');
-  console.log(`📱 Tablet için açın: http://${LOCAL_IP}:${PORT}/`);
-  console.log(`🕵️  Spymaster için: http://${LOCAL_IP}:${PORT}/spymaster.html`);
-  console.log('\nQR kod tablet ekranında otomatik gösterilecek.');
-  console.log('Herkesi aynı WiFi ağına bağlayın.\n');
+server.listen(PORT, () => {
+  console.log(`🎮 CODENAMES TÜRKÇE - Sunucu ${PORT} portunda aktif!`);
 });
+
+// VERCEL İÇİN KRİTİK DIŞA AKTARMA
+module.exports = server;
