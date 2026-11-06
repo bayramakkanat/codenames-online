@@ -1,40 +1,24 @@
-# 🎮 Codenames Türkçe — Lokal WiFi Versiyonu
+# 🎮 Codenames Türkçe
 
-## Kurulum (Tek Seferlik)
+Tablet (büyük ekran) + spymaster telefonları ile oynanan Türkçe Codenames.
+Render üzerinde çalışır; her push'ta otomatik yayınlanır.
 
-1. **Node.js** yüklü olmalı: https://nodejs.org (LTS sürümü)
-2. Bu klasörü bir yere kopyalayın
-3. Terminal / Komut İstemi açın, klasöre gelin:
-   ```
-   cd codenames
-   node server.js
-   ```
+## Nasıl oynanır
 
-## Oyun Başlatma
+1. Tablette ya da bilgisayarda oyunun Render adresini aç (`/` sayfası = büyük ekran).
+2. **📱 Spymaster QR** düğmesine bas, spymaster'lar telefonlarıyla QR kodu tarasın.
+3. Spymaster'lar kart renklerini telefondan görür, tek kelime + sayı ipucu verir.
+4. Takım arkadaşları büyük ekrandan kartlara basar.
 
-1. `node server.js` çalıştırın
-2. Terminalde şunu göreceksiniz:
-   ```
-   📱 Tablet için açın: http://192.168.x.x:3456/
-   🕵️  Spymaster için: http://192.168.x.x:3456/spymaster.html
-   ```
-3. **Tablet** büyük ekranı açsın (ilk link)
-4. Tablet'te **"📱 QR Kod"** butonuna basın
-5. **Spymaster** telefonuyla QR kodu tarasın
+## Kurallar
 
-## Oyun Kuralları
-
-- 5x5 ızgara, 25 kelime
-- 🔴 Kırmızı: 9 kelime, 🔵 Mavi: 8 kelime, 💀 Suikastçı: 1, Masum: 7
+- 5x5 ızgara, 25 kelime: 🔴 9, 🔵 8, 💀 1 suikastçı, 7 masum
 - Kırmızı takım başlar
-- Spymaster tek kelime + sayı ipucu verir (telefondan)
-- Takım arkadaşları tabletten kartlara basar
-- İlk tüm kelimelerini bulan takım kazanır!
-- Suikastçıya basılırsa o takım anında kaybeder
+- Tüm kelimelerini ilk bulan takım kazanır
+- Suikastçıya basan takım anında kaybeder
 
-## Gereksinimler
+## Teknik notlar
 
-- Herkes aynı WiFi ağında olmalı
-- Node.js yüklü bir bilgisayar (sunucu görevi görür)
-- 1 tablet (büyük ekran, herkes görür)
-- Spymaster'ların telefonu (QR ile bağlanır)
+- `server.js`: Node.js sunucusu, oyun durumu bellekte tutulur (servis yeniden başlarsa oyun sıfırlanır)
+- `tablet.html`: büyük ekran, `spymaster.html`: telefon ekranı
+- Render'da Start Command: `npm start` (`node server.js`), port `PORT` ortam değişkeninden gelir

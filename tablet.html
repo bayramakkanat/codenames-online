@@ -177,7 +177,7 @@
 <div class="qr-modal" id="qr-modal">
   <div class="qr-card">
     <div class="qr-bas">🕵️ Spymaster</div>
-    <div class="qr-ac">Spymaster bu QR kodu tarasın.<br>Aynı WiFi'da olması yeterli.</div>
+    <div class="qr-ac">Spymaster bu QR kodu telefonuyla tarasın.<br>İnternet bağlantısı olması yeterli.</div>
     <div id="qrcode"></div>
     <div class="qr-url" id="qr-url"></div>
     <button class="btn-kapat" onclick="qrGizle()">Kapat</button>
@@ -306,7 +306,7 @@ function renderOyun(){
   oyun.kartlar.forEach((kart,i)=>{
     const d=document.createElement('div');
     d.className='kart'+(kart.a?' acik '+kart.r:'');
-    d.innerHTML=`<span class="kel">${kart.k}</span>`;
+    const sp=document.createElement('span');sp.className='kel';sp.textContent=kart.k;d.appendChild(sp);
     if(!kart.a&&!oyun.bitti)d.addEventListener('click',()=>kartAc(i));
     grid.appendChild(d);
   });
