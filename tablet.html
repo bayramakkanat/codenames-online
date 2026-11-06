@@ -109,10 +109,10 @@
   /* QR MODAL */
   .qr-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(6px)}
   .qr-modal.goster{display:flex}
-  .qr-card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:30px 38px;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:360px;width:90%}
+  .qr-card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:30px 38px;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:420px;width:90%}
   .qr-bas{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--gold)}
   .qr-ac{font-size:13px;color:var(--dim);text-align:center;line-height:1.6}
-  #qrcode{background:white;padding:10px;border-radius:8px}
+  #qrcode{background:white;padding:16px;border-radius:8px}
   .qr-url{font-size:11px;color:var(--dim);word-break:break-all;text-align:center}
   .btn-kapat{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:9px 24px;border-radius:var(--r);border:1px solid var(--bdr);background:transparent;color:var(--text);cursor:pointer}
   .btn-kapat:hover{background:var(--sur2)}
@@ -331,9 +331,9 @@ let qrYapildi=false;
 function qrGoster(){
   document.getElementById('qr-modal').classList.add('goster');
   if(!qrYapildi){
-    const url=`${location.protocol}//${location.host}/spymaster.html?v=${Date.now()}`;
+    const url=`${location.protocol}//${location.host}/spymaster.html`;
     document.getElementById('qr-url').textContent=url;
-    new QRCode(document.getElementById('qrcode'),{text:url,width:190,height:190,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
+    new QRCode(document.getElementById('qrcode'),{text:url,width:260,height:260,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
     qrYapildi=true;
   }
 }
