@@ -61,6 +61,15 @@
   .kart.acik.sk{background:#0a0a0a;border-color:#e74c3c;box-shadow:inset 0 0 15px rgba(231,76,60,.5)}
   .kart.acik.sk .kel{color:#e74c3c}
 
+  /* PC / BÜYÜK EKRAN: kartlar ekran büyüdükçe büyür (tablet görünümü değişmez) */
+  @media (min-width:1100px){
+    :root{--gw:min(100vw - 28px, (100vh - 140px) * 1.8)}
+    @supports (height:100dvh){:root{--gw:min(100vw - 28px, (100dvh - 140px) * 1.8)}}
+    .grid{max-width:none;width:var(--gw);gap:calc(var(--gw) * .009)}
+    .kart{border-radius:calc(var(--gw) * .011)}
+    .kart .kel{font-size:calc(var(--gw) * .02);padding:.25em .4em}
+  }
+
   /* BOTTOM */
   .bottombar{background:var(--sur);border-top:1px solid var(--bdr);padding:7px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .status{font-size:11px;color:var(--dim);letter-spacing:1px;display:flex;align-items:center;gap:7px}
