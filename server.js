@@ -3,13 +3,44 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 3000;
+const MAX_BODY = 100 * 1024; // 100 KB, oyun durumu için fazlasıyla yeter
 
 // Oyun durumu (hafızada tutuluyor)
 let gameState = null;
 
+// Sadece bu dosyalar dışarıya sunulur (server.js, package.json vb. sunulmaz)
+const IZINLI_DOSYALAR = {
+  '/': 'tablet.html',
+  '/tablet.html': 'tablet.html',
+  '/spymaster.html': 'spymaster.html'
+};
+
 function getContentType(ext) {
-  const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json' };
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json' };
   return types[ext] || 'text/plain';
+}
+
+// İstek gövdesini okur; çok büyükse keser
+function govdeOku(req, res, callback) {
+  let body = '';
+  let tooBig = false;
+  req.on('data', d => {
+    if (tooBig) return;
+    body += d;
+    if (body.length > MAX_BODY) {
+      tooBig = true;
+      res.writeHead(413);
+      res.end('too large');
+      req.destroy();
+    }
+  });
+  req.on('end', () => { if (!tooBig) callback(body); });
+}
+
+function jsonYanit(res, kod, metin) {
+  res.setHeader('Cache-Control', 'no-store');
+  res.writeHead(kod);
+  res.end(metin);
 }
 
 const server = http.createServer((req, res) => {
@@ -26,41 +57,36 @@ const server = http.createServer((req, res) => {
   // API: get state
   if (pathname === '/api/state' && req.method === 'GET') {
     res.setHeader('Content-Type', 'application/json');
-    res.writeHead(200);
-    res.end(JSON.stringify(gameState));
+    jsonYanit(res, 200, JSON.stringify(gameState));
     return;
   }
 
-  // API: set state
+  // API: set state (tüm durumu değiştirir)
   if (pathname === '/api/state' && req.method === 'POST') {
-    let body = '';
-    req.on('data', d => body += d);
-    req.on('end', () => {
-      try { gameState = JSON.parse(body); res.writeHead(200); res.end('ok'); }
-      catch(e) { res.writeHead(400); res.end('bad json'); }
+    govdeOku(req, res, body => {
+      try { gameState = JSON.parse(body); jsonYanit(res, 200, 'ok'); }
+      catch (e) { jsonYanit(res, 400, 'bad json'); }
     });
     return;
   }
 
-  // API: update state (POST)
-  if (pathname === '/api/update') {
-    let body = '';
-    req.on('data', d => body += d);
-    req.on('end', () => {
+  // API: update state (sadece gönderilen alanları günceller, örn. {"sira":"mv"})
+  if (pathname === '/api/update' && req.method === 'POST') {
+    govdeOku(req, res, body => {
       try {
         const update = JSON.parse(body);
-        if (gameState) Object.assign(gameState, update);
-        res.writeHead(200);
-        res.end('ok');
-      } catch(e) { res.writeHead(400); res.end('bad json'); }
+        if (gameState && update && typeof update === 'object') Object.assign(gameState, update);
+        jsonYanit(res, 200, 'ok');
+      } catch (e) { jsonYanit(res, 400, 'bad json'); }
     });
     return;
   }
 
-  // Dosya sunma
-  let filePath = pathname === '/' ? '/tablet.html' : pathname;
-  filePath = path.join(__dirname, filePath);
+  // Dosya sunma (sadece izinli sayfalar)
+  const dosya = IZINLI_DOSYALAR[pathname];
+  if (!dosya) { res.writeHead(404); res.end('Not found'); return; }
 
+  const filePath = path.join(__dirname, dosya);
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
     res.setHeader('Content-Type', getContentType(path.extname(filePath)));
@@ -75,6 +101,3 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`🎮 CODENAMES TÜRKÇE - Sunucu ${PORT} portunda aktif!`);
 });
-
-// VERCEL İÇİN KRİTİK DIŞA AKTARMA
-module.exports = server;

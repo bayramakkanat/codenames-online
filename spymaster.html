@@ -14,7 +14,7 @@
     --bdr:rgba(255,255,255,.07);--r:8px;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+  body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh;display:flex;flex-direction:column;padding-bottom:44px}
 
   /* HEADER */
   .hdr{background:var(--sur);border-bottom:1px solid var(--bdr);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
@@ -134,14 +134,16 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
 <script>
-let oyun=null, isUpdating=false;
+let oyun=null, isUpdating=false, sonYazma=0;
 
 async function sunAl(){
   if(isUpdating)return;
+  const t0=Date.now();
   try{
     const r=await fetch('/api/state');
     const v=await r.json();
-    if(isUpdating)return;
+    // Yoklama sürerken bir yazma olduysa bu yanıt eskimiş olabilir, yok say
+    if(isUpdating||sonYazma>=t0)return;
     if(!v||!v.kartlar)return;
     const degisti=!oyun||JSON.stringify(v)!==JSON.stringify(oyun);
     oyun=v;
@@ -154,19 +156,18 @@ async function sunAl(){
   }
 }
 
-async function sunGonder(){
-  isUpdating=true;
-  try{
-    await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(oyun)});
-  }catch(e){}
-  isUpdating=false;
-}
-
 async function turGec(){
   if(!oyun||oyun.bitti)return;
-  oyun.sira=oyun.sira==='kr'?'mv':'kr';
-  await sunGonder();
+  const yeniSira=oyun.sira==='kr'?'mv':'kr';
+  oyun.sira=yeniSira;
   render();
+  isUpdating=true;
+  try{
+    // Sadece sırayı gönder; tablette açılan kartlar ezilmesin
+    await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sira:yeniSira})});
+  }catch(e){}
+  sonYazma=Date.now();
+  isUpdating=false;
 }
 
 function render(){
