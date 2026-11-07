@@ -23,18 +23,18 @@
   .logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,2.4vw,30px);letter-spacing:3px;color:var(--gold);flex-shrink:0}
 
   .scores{display:flex;align-items:center;flex:1;justify-content:center;gap:4px}
-  .sc{display:flex;align-items:center;gap:clamp(8px,1vw,12px);padding:4px clamp(10px,1.4vw,18px) 8px;border-radius:12px;position:relative;border:2px solid transparent;opacity:.5;transition:background .3s,opacity .3s,border-color .3s}
+  .sc{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:clamp(8px,1vw,12px);padding:4px clamp(10px,1.4vw,18px) 8px;border-radius:12px;position:relative;border:2px solid transparent;opacity:.5;transition:background .3s,opacity .3s,border-color .3s}
   .sc.aktif{opacity:1}
   #sc-kr.aktif{background:rgba(231,76,60,.2);border-color:var(--kr-l);animation:sira-kr 1.8s ease-in-out infinite}
   #sc-mv.aktif{background:rgba(41,128,185,.22);border-color:var(--mv-l);animation:sira-mv 1.8s ease-in-out infinite}
   @keyframes sira-kr{0%,100%{box-shadow:0 0 5px rgba(231,76,60,.35)}50%{box-shadow:0 0 16px 1px rgba(231,76,60,.85)}}
   @keyframes sira-mv{0%,100%{box-shadow:0 0 5px rgba(41,128,185,.35)}50%{box-shadow:0 0 16px 1px rgba(41,128,185,.9)}}
-  .sira-rozet{font-size:clamp(11px,1vw,14px);font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:12px;color:#fff;visibility:hidden}
+  .sira-rozet{font-size:clamp(11px,1vw,14px);font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:12px;color:#fff;visibility:hidden;justify-self:end}
   .sc.aktif .sira-rozet{visibility:visible}
   #sc-kr .sira-rozet{background:var(--kr-l)} #sc-mv .sira-rozet{background:var(--mv-l)}
   @media (max-width:900px){.sira-rozet{display:none}}
-  .sc .icon{font-size:clamp(20px,2vw,26px)}
-  .sc-info{display:flex;flex-direction:column}
+  .sc .icon{font-size:clamp(20px,2vw,26px);justify-self:start}
+  .sc-info{display:flex;flex-direction:column;align-items:center;text-align:center}
   .sc-name{font-size:clamp(10px,1vw,12px);text-transform:uppercase;letter-spacing:2px;color:var(--dim);line-height:1}
   .sc-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,3.2vw,42px);line-height:1;transition:all 0.3s}
   .sc-num.kr{color:var(--kr-l)} .sc-num.mv{color:var(--mv-l)}
