@@ -125,7 +125,6 @@
   <div class="kaz-bas" id="kaz-bas">KIRMIZI KAZANDI 🏆</div>
 </div>
 
-<button class="btn-tur" id="btn-tur" onclick="turGec()">⏭ Turu Geç (Pas)</button>
 
 <div class="conn">
   <div class="dot ok" id="conn-dot"></div>
@@ -156,20 +155,6 @@ async function sunAl(){
   }
 }
 
-async function turGec(){
-  if(!oyun||oyun.bitti)return;
-  const yeniSira=oyun.sira==='kr'?'mv':'kr';
-  oyun.sira=yeniSira;
-  render();
-  isUpdating=true;
-  try{
-    // Sadece sırayı gönder; tablette açılan kartlar ezilmesin
-    await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sira:yeniSira})});
-  }catch(e){}
-  sonYazma=Date.now();
-  isUpdating=false;
-}
-
 function render(){
   if(!oyun)return;
   renderGrid();
@@ -198,7 +183,6 @@ function renderSkors(){
 
 function renderDurum(){
   const kaz=document.getElementById('kaz-banner');
-  const tur=document.getElementById('btn-tur');
   const uy=document.getElementById('uyari');
 
   if(oyun.bitti){
@@ -208,11 +192,9 @@ function renderDurum(){
     if(oyun.kazanan==='sk') msg='💀 Suikastçı Bulundu!';
     else msg=(oyun.kazanan==='kr'?'🔴 Kırmızı':'🔵 Mavi')+' Kazandı! 🏆';
     document.getElementById('kaz-bas').textContent=msg;
-    tur.disabled=true;
     uy.classList.remove('goster');
   } else {
     kaz.classList.remove('goster');
-    tur.disabled=false;
   }
 }
 
