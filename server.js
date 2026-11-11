@@ -254,6 +254,13 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000).unref();
 
+// Ana adres (/) telefondan açılırsa telefon moduna (oyuncu.html), tablet/bilgisayardan açılırsa tablet moduna gider.
+// /tablet.html ve /oyuncu.html adresleri her zaman kendi sayfasını açar.
+function telefonMu(req) {
+  const ua = String(req.headers['user-agent'] || '');
+  return /iPhone|iPod|Windows Phone|Android.*Mobile|Mobile.*Android/i.test(ua);
+}
+
 // ---------- SUNUCU ----------
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -297,7 +304,9 @@ const server = http.createServer((req, res) => {
   if (telefonUclari(pathname, req, res, url)) return;
 
   // Dosya sunma (sadece izinli sayfalar)
-  const dosya = IZINLI_DOSYALAR[pathname];
+  let dosya = IZINLI_DOSYALAR[pathname];
+  if (pathname === '/' && telefonMu(req)) dosya = 'oyuncu.html';
+  res.setHeader('Vary', 'User-Agent');
   if (!dosya) { res.writeHead(404); res.end('Not found'); return; }
 
   const filePath = path.join(__dirname, dosya);
