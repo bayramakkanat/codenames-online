@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Codenames Türkçe — Telefon</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&display=swap');
+  :root{
+    --bg:#0d0e12; --sur:#16181f; --sur2:#1e2028;
+    --kr:#c0392b; --kr-l:#e74c3c; --mv:#1a6fa8; --mv-l:#2980b9;
+    --gold:#f0c040; --text:#e8eaf2; --dim:#7a8096; --bdr:rgba(255,255,255,0.07); --r:10px; --u:clamp(46px,8vh,96px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;
+    height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-user-select:none;user-select:none;touch-action:manipulation;
+  }
+  @supports (height:100dvh){body{height:100dvh}}
+  .gizli{display:none!important}
+  button{font-family:inherit;cursor:pointer}
+
+  /* DİKEY TUTULURSA: telefonu çevir uyarısı */
+  #dondur{position:fixed;inset:0;background:var(--bg);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+  #dondur .ik{font-size:64px;animation:don 2.4s ease-in-out infinite}
+  #dondur .tx{font-size:24px;font-weight:700;letter-spacing:1px}
+  #dondur .alt{font-size:15px;color:var(--dim)}
+  @keyframes don{0%,25%{transform:rotate(0)}65%,100%{transform:rotate(-90deg)}}
+  @media (orientation:portrait){#dondur{display:flex}}
+
+  /* ROL SEÇİMİ */
+  #ekran-rol{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px 16px}
+  .rol-bas{font-family:'Bebas Neue',sans-serif;font-size:clamp(24px,8vh,40px);letter-spacing:4px;color:var(--gold);line-height:1}
+  .rol-alt{font-size:clamp(12px,3.6vh,16px);color:var(--dim);letter-spacing:1.5px;text-transform:uppercase}
+  .rol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:780px}
+  .rol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:clamp(6px,2.2vh,14px) 8px;border-radius:12px;border:2px solid;font-size:clamp(16px,5.4vh,24px);font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text)}
+  .rol small{font-size:clamp(10px,3vh,14px);font-weight:600;letter-spacing:.3px;text-transform:none;color:var(--dim)}
+  .rol.kr{border-color:var(--kr);background:rgba(192,57,43,.15)}
+  .rol.mv{border-color:var(--mv-l);background:rgba(41,128,185,.15)}
+  .rol:active:not(:disabled){transform:scale(.97)}
+  .rol:disabled{opacity:.35}
+  .rol-araclar{display:flex;gap:12px;margin-top:6px}
+  .arac{background:rgba(255,255,255,.06);border:2px solid rgba(240,192,64,.55);color:var(--gold);border-radius:12px;min-height:44px;padding:clamp(8px,2.6vh,16px) clamp(18px,3vw,34px);font-size:clamp(16px,5vh,24px);font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+  .arac:active{transform:scale(.97);background:rgba(240,192,64,.12)}
+
+  /* OYUN EKRANI */
+  #ekran-oyun{flex:1;min-height:0;display:flex;flex-direction:column}
+  .ust{display:flex;align-items:center;gap:clamp(8px,1.6vh,18px);height:var(--u);padding:0 clamp(10px,2vh,24px);background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0}
+  .chip{font-size:clamp(15px,3vh,30px);font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:.25em .8em;border-radius:16px;border:1.5px solid;white-space:nowrap}
+  .chip.kr{color:var(--kr-l);border-color:var(--kr-l);background:rgba(231,76,60,.12)}
+  .chip.mv{color:var(--mv-l);border-color:var(--mv-l);background:rgba(41,128,185,.12)}
+  .skor{display:flex;align-items:center;gap:6px;margin:0 auto}
+  .sk{display:flex;align-items:center;gap:clamp(6px,1.2vh,14px);padding:1px clamp(12px,2.4vh,28px);border-radius:10px;border:2px solid transparent;opacity:.5;transition:all .3s}
+  .sk b{font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,5.8vh,64px);line-height:1.1;font-weight:400}
+  .sk span{font-size:clamp(12px,1.9vh,20px);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
+  .sk.aktif{opacity:1}
+  #s-kr b{color:var(--kr-l)} #s-mv b{color:var(--mv-l)}
+  #s-kr.aktif{background:rgba(231,76,60,.2);border-color:var(--kr-l)}
+  #s-mv.aktif{background:rgba(41,128,185,.22);border-color:var(--mv-l)}
+  .ust button{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text);border-radius:8px;padding:clamp(5px,1vh,12px) clamp(12px,2vh,24px);font-size:clamp(15px,3vh,28px);font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+  #btn-onay{background:var(--gold);border-color:var(--gold);color:#111}
+  #btn-menu{padding:5px 10px;font-size:clamp(18px,3.6vh,32px);line-height:1}
+
+  .tahta{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:6px;padding:6px 8px}
+  .kart{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--sur2);border:2px solid var(--bdr);overflow:hidden;transition:transform .12s,border-color .12s,background .2s}
+  .kel{font-weight:700;text-transform:uppercase;text-align:center;line-height:1.05;padding:2px 4px;letter-spacing:.3px;font-size:clamp(10px,min(4.4vh,2.9vw),22px)}
+  .kart.tik{border-color:rgba(255,255,255,.25)}
+  .kart.tik:active{transform:scale(.97)}
+  .kart.sec{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset,0 0 14px rgba(240,192,64,.5);transform:scale(1.03);z-index:2}
+  /* Spymaster / oyun sonu: açılmamış kartların renkleri */
+  .kart.spy.kr{border-color:var(--kr-l);background:rgba(192,57,43,.28)}
+  .kart.spy.mv{border-color:var(--mv-l);background:rgba(26,111,168,.32)}
+  .kart.spy.ms{border-color:rgba(200,185,150,.5);background:rgba(200,185,150,.12)}
+  .kart.spy.sk{border-color:#fff;background:#000}
+  /* Açılmış kartlar */
+  .kart.acik{border-color:transparent}
+  .kart.acik.kr{background:var(--kr)} .kart.acik.mv{background:var(--mv)}
+  .kart.acik.ms{background:#8a7d63;color:#2a2418} .kart.acik.sk{background:#000;border-color:var(--kr-l)}
+  .kart.acik .kel{opacity:.85}
+
+  .alt-serit{height:clamp(26px,3.6vh,44px);display:flex;align-items:center;justify-content:center;gap:8px;font-size:clamp(13px,2vh,22px);color:var(--dim);letter-spacing:1px;text-transform:uppercase;border-top:1px solid var(--bdr);background:var(--sur);flex-shrink:0}
+  .nokta{width:8px;height:8px;border-radius:50%;background:#e74c3c}
+  .nokta.on{background:#2ecc71}
+
+  /* MENÜ */
+  .menu{position:fixed;top:calc(var(--u) + 4px);right:8px;z-index:80;background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .menu button{background:var(--sur2);border:1px solid var(--bdr);color:var(--text);border-radius:8px;padding:9px 14px;font-size:clamp(16px,2.8vh,26px);font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:left}
+
+  /* BİLDİRİM */
+  #olay{position:fixed;top:calc(var(--u) + 6px);left:50%;transform:translateX(-50%) translateY(-16px);opacity:0;pointer-events:none;transition:all .25s;background:rgba(22,24,31,.97);border:2px solid var(--bdr);border-radius:14px;padding:6px 22px;text-align:center;z-index:70;max-width:90vw}
+  #olay.goster{opacity:1;transform:translateX(-50%) translateY(0)}
+  #olay .o1{font-size:clamp(20px,3.4vh,34px);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  #olay .o2{font-size:14px;color:var(--dim)}
+  #olay.buyuk{padding:10px 30px}
+  #olay.buyuk .o1{font-size:clamp(24px,8vh,36px)}
+  #olay.kr{border-color:var(--kr-l)} #olay.mv{border-color:var(--mv-l)}
+
+  /* OYUN SONU */
+  #kaz{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+  #kaz.goster{display:flex}
+  #kaz .k-emo{font-size:clamp(40px,14vh,72px);line-height:1}
+  #kaz .k-ad{font-family:'Bebas Neue',sans-serif;font-size:clamp(34px,13vh,64px);letter-spacing:4px;line-height:1}
+  #kaz .k-alt{font-size:clamp(14px,4.4vh,20px);color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+  #kaz .k-bt{display:flex;gap:10px;margin-top:8px}
+  #kaz button{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--text);border-radius:var(--r);padding:8px 20px;font-size:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  #btn-tekrar{background:var(--gold)!important;border-color:var(--gold)!important;color:#111!important}
+
+  /* ONAY PENCERESİ (tarayıcının kendi uyarısı yerine) */
+  #onay-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:95;display:none;align-items:center;justify-content:center}
+  #onay-modal.goster{display:flex}
+  .onay-kart{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:16px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:min(440px,90vw);text-align:center}
+  .onay-yazi{font-size:clamp(18px,5.4vh,26px);font-weight:700;line-height:1.2}
+  .onay-bt{display:flex;gap:10px;width:100%}
+  .onay-bt button{flex:1;border-radius:10px;padding:clamp(8px,2.6vh,14px) 8px;font-size:clamp(16px,4.6vh,22px);font-weight:800;letter-spacing:1px;text-transform:uppercase;border:2px solid rgba(255,255,255,.3);background:transparent;color:var(--text)}
+  #onay-evet{background:var(--gold);border-color:var(--gold);color:#111}
+
+  /* QR PENCERESİ */
+  #qr-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:90;display:none;align-items:center;justify-content:center}
+  #qr-modal.goster{display:flex}
+  .qr-kart{display:flex;flex-direction:row;align-items:center;gap:18px;background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:14px 20px}
+  #qrcode{background:#fff;padding:8px;border-radius:8px;line-height:0}
+  .qr-sag{display:flex;flex-direction:column;gap:8px;max-width:300px}
+  .qr-sag .b{font-size:20px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase}
+  .qr-sag .u{font-size:13px;color:var(--dim);word-break:break-all;user-select:text;-webkit-user-select:text}
+  .qr-sag button{background:transparent;border:1px solid rgba(255,255,255,.3);color:var(--text);border-radius:8px;padding:8px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div id="dondur">
+  <div class="ik">📱</div>
+  <div class="tx">Telefonu yan çevir</div>
+  <div class="alt">Oyun yatay ekranda oynanır</div>
+</div>
+
+<!-- ROL SEÇİMİ -->
+<div id="ekran-rol">
+  <div class="rol-bas">CODENAMES</div>
+  <div class="rol-alt">Rolünü seç</div>
+  <div class="rol-grid">
+    <button class="rol kr" data-rol="krKaptan"><span>🔴 Kaptan</span><small>Takımın adına dokunur</small></button>
+    <button class="rol kr" data-rol="krSpy"><span>🔴 Spymaster</span><small>Renkleri görür, ipucu verir</small></button>
+    <button class="rol kr" data-rol="krOyuncu"><span>🔴 Oyuncu</span><small>Tartışır, ekranı izler</small></button>
+    <button class="rol mv" data-rol="mvKaptan"><span>🔵 Kaptan</span><small>Takımın adına dokunur</small></button>
+    <button class="rol mv" data-rol="mvSpy"><span>🔵 Spymaster</span><small>Renkleri görür, ipucu verir</small></button>
+    <button class="rol mv" data-rol="mvOyuncu"><span>🔵 Oyuncu</span><small>Tartışır, ekranı izler</small></button>
+  </div>
+  <div class="rol-araclar">
+    <button class="arac" id="r-fs">⛶ Tam ekran</button>
+    <button class="arac" id="r-qr">📲 Davet QR</button>
+  </div>
+</div>
+
+<!-- OYUN EKRANI -->
+<div id="ekran-oyun" class="gizli">
+  <div class="ust">
+    <div class="chip" id="chip"></div>
+    <div class="skor">
+      <div class="sk" id="s-kr"><b id="n-kr">9</b><span>Kırmızı</span></div>
+      <div class="sk" id="s-mv"><b id="n-mv">8</b><span>Mavi</span></div>
+    </div>
+    <button id="btn-onay" class="gizli">✔ Onayla</button>
+    <button id="btn-pas" class="gizli">⏭ Pas</button>
+    <button id="btn-menu">⋯</button>
+  </div>
+  <div class="tahta" id="tahta"></div>
+  <div class="alt-serit"><span class="nokta" id="nokta"></span><span id="durum-yazi"></span></div>
+</div>
+
+<div class="menu gizli" id="menu">
+  <button id="m-fs">⛶ Tam ekran / yatay kilit</button>
+  <button id="m-qr">📲 Davet QR</button>
+  <button id="m-rol">🔄 Rolü değiştir</button>
+  <button id="m-yeni" class="gizli">🎲 Yeni oyun</button>
+</div>
+
+<div id="olay"><div class="o1"></div><div class="o2"></div></div>
+
+<div id="kaz">
+  <div class="k-emo" id="k-emo"></div>
+  <div class="k-ad" id="k-ad"></div>
+  <div class="k-alt" id="k-alt"></div>
+  <div class="k-bt">
+    <button id="btn-tahta">Tahtaya bak</button>
+    <button id="btn-tekrar" class="gizli">🎲 Yeni oyun</button>
+  </div>
+  <div class="k-alt gizli" id="k-not" style="font-size:13px">Yeni oyunu kaptanlar başlatır</div>
+</div>
+
+<div id="onay-modal">
+  <div class="onay-kart">
+    <div class="onay-yazi" id="onay-yazi"></div>
+    <div class="onay-bt">
+      <button id="onay-hayir">Vazgeç</button>
+      <button id="onay-evet">Evet</button>
+    </div>
+  </div>
+</div>
+
+<div id="qr-modal">
+  <div class="qr-kart">
+    <div id="qrcode"></div>
+    <div class="qr-sag">
+      <div class="b">Oyuna katıl</div>
+      <div class="u" id="qr-url"></div>
+      <button id="qr-kapat">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const TAKIM = {kr:{ad:'Kırmızı',emo:'🔴'}, mv:{ad:'Mavi',emo:'🔵'}};
+const ROLAD = {Kaptan:'Kaptan', Spy:'Spymaster', Oyuncu:'Oyuncu'};
+const RENKAD = {kr:'Kırmızı kart', mv:'Mavi kart', ms:'Masum sivil', sk:'Suikastçı'};
+const $ = id => document.getElementById(id);
+
+// Bu telefonun kimliği (sayfa yenilense de rol bu kimlikle hatırlanır)
+let CID = null;
+try { CID = localStorage.getItem('cn_id'); } catch(e) {}
+if (!CID) {
+  CID = 'p' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+  try { localStorage.setItem('cn_id', CID); } catch(e) {}
+}
+
+let S = null;          // sunucudan gelen son durum
+let sonKey = '';
+let sec = null;        // seçili kart (onay bekliyor)
+let olayN = null;      // en son gösterilen olay numarası
+let busy = false, online = false;
+let kazKapali = false; // "Tahtaya bak" ile oyun sonu ekranı kapatıldı mı
+let olayT = null;
+
+/* ---------- AĞ ---------- */
+async function api(yol, govde) {
+  try {
+    const r = await fetch(yol, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.assign({id:CID}, govde))});
+    let j = {};
+    try { j = await r.json(); } catch(e) {}
+    return Object.assign({ok:r.ok, status:r.status}, j);
+  } catch(e) { return {ok:false, hata:'Bağlantı yok'}; }
+}
+
+async function yokla() {
+  if (busy) return;
+  busy = true;
+  try {
+    const r = await fetch('/api/durum?id=' + encodeURIComponent(CID), {cache:'no-store'});
+    if (!r.ok) throw new Error('http');
+    const v = await r.json();
+    online = true;
+    uygula(v);
+  } catch(e) {
+    online = false;
+  }
+  $('nokta').classList.toggle('on', online);
+  busy = false;
+}
+
+function uygula(v) {
+  // Yeni olay var mı? (ilk yüklemede eski olayı gösterme)
+  if (v.olay) {
+    if (olayN === null) olayN = v.olay.n;
+    else if (v.olay.n !== olayN) { olayN = v.olay.n; olayGoster(v.olay, v.ben); }
+  } else if (olayN === null) olayN = 0;
+  const key = JSON.stringify(v);
+  const degisti = key !== sonKey;
+  sonKey = key;
+  S = v;
+  if (degisti) render();
+}
+
+/* ---------- ÇİZİM ---------- */
+function render() {
+  if (!S) return;
+  const ben = S.ben;
+  $('ekran-rol').classList.toggle('gizli', !!ben);
+  $('ekran-oyun').classList.toggle('gizli', !ben);
+  if (!ben) { menuKapat(); renderRol(); return; }
+  renderOyun();
+}
+
+function renderRol() {
+  document.querySelectorAll('.rol').forEach(b => {
+    const dolu = !!S.roller[b.dataset.rol];
+    b.disabled = dolu;
+    const kucuk = b.querySelector('small');
+    if (!kucuk.dataset.orj) kucuk.dataset.orj = kucuk.textContent;
+    kucuk.textContent = dolu ? 'Dolu' : kucuk.dataset.orj;
+  });
+}
+
+function renderOyun() {
+  const o = S.oyun, ben = S.ben;
+  const tk = ben.slice(0, 2), rol = ben.slice(2);
+  const kaptan = rol === 'Kaptan', spy = rol === 'Spy';
+  const sirada = o.sira === tk && !o.bitti;
+  const tikla = kaptan && sirada;
+  if (sec !== null && (!tikla || o.kartlar[sec].a)) sec = null;
+  if (!o.bitti) kazKapali = false;
+
+  const chip = $('chip');
+  chip.className = 'chip ' + tk;
+  chip.textContent = TAKIM[tk].emo + ' ' + ROLAD[rol];
+
+  $('n-kr').textContent = o.krH - o.kr;
+  $('n-mv').textContent = o.mvH - o.mv;
+  $('s-kr').classList.toggle('aktif', o.sira === 'kr' && !o.bitti);
+  $('s-mv').classList.toggle('aktif', o.sira === 'mv' && !o.bitti);
+
+  $('btn-pas').classList.toggle('gizli', !tikla);
+  $('btn-onay').classList.toggle('gizli', !(tikla && sec !== null));
+  $('m-yeni').classList.toggle('gizli', !kaptan);
+
+  const gor = spy || o.bitti; // renkleri görebilir mi
+  const t = $('tahta');
+  t.innerHTML = '';
+  o.kartlar.forEach((c, i) => {
+    const d = document.createElement('div');
+    let cls = 'kart';
+    if (c.a) cls += ' acik ' + c.r;
+    else {
+      if (gor && c.r) cls += ' spy ' + c.r;
+      if (tikla) cls += ' tik';
+      if (sec === i) cls += ' sec';
+    }
+    d.className = cls;
+    const sp = document.createElement('span');
+    sp.className = 'kel';
+    sp.textContent = c.k;
+    d.appendChild(sp);
+    if (!c.a && tikla) d.addEventListener('click', () => kartTik(i));
+    t.appendChild(d);
+  });
+
+  // Alt şerit yazısı
+  let yazi;
+  if (o.bitti) yazi = kazKapali ? 'Oyun bitti — yeni oyun için menü' : 'Oyun bitti';
+  else if (tikla) yazi = sec === null ? 'Sıra sizde — ekibinle karar ver, kelimeye dokun' : 'Seçilen: ' + o.kartlar[sec].k + ' — tekrar dokun veya ONAYLA';
+  else if (o.sira === tk) yazi = 'Sıra takımınızda' + (kaptan ? '' : ' — kaptan dokunacak');
+  else yazi = 'Sıra ' + TAKIM[o.sira].emo + ' ' + TAKIM[o.sira].ad + ' takımında';
+  $('durum-yazi').textContent = yazi;
+
+  // Oyun sonu ekranı
+  const kz = $('kaz');
+  kz.classList.toggle('goster', o.bitti && !kazKapali);
+  if (o.bitti) {
+    if (o.kazanan === 'sk') {
+      $('k-emo').textContent = '💀';
+      $('k-ad').textContent = 'SUİKASTÇI!';
+      $('k-alt').textContent = TAKIM[o.sira].ad + ' takım kaybetti';
+    } else {
+      $('k-emo').textContent = TAKIM[o.kazanan].emo;
+      $('k-ad').textContent = TAKIM[o.kazanan].ad.toUpperCase() + ' KAZANDI!';
+      $('k-alt').textContent = 'Tebrikler!';
+    }
+    $('btn-tekrar').classList.toggle('gizli', !kaptan);
+    $('k-not').classList.toggle('gizli', kaptan);
+  }
+}
+
+/* ---------- BİLDİRİMLER ---------- */
+function bildir(b1, b2, sinif, buyuk, sure) {
+  const el = $('olay');
+  el.querySelector('.o1').textContent = b1;
+  el.querySelector('.o2').textContent = b2 || '';
+  el.querySelector('.o2').style.display = b2 ? '' : 'none';
+  el.className = 'goster ' + (sinif || '') + (buyuk ? ' buyuk' : '');
+  clearTimeout(olayT);
+  olayT = setTimeout(() => { el.classList.remove('goster'); }, sure || 2200);
+}
+
+function olayGoster(ol, ben) {
+  if (ol.tip === 'yeni') { bildir('🎲 Yeni oyun başladı', '', '', false, 2500); return; }
+  if (ol.bitti) return; // sonucu oyun sonu ekranı gösterir
+  if (ol.tur) {
+    const t = TAKIM[ol.sira];
+    bildir(t.emo + ' ' + t.ad + ' takımın sırası', ol.sebep, ol.sira, true, 3200);
+    if (ben && ben.slice(0, 2) === ol.sira && navigator.vibrate) { try { navigator.vibrate(150); } catch(e) {} }
+  } else {
+    bildir('✔ ' + ol.kelime, RENKAD[ol.renk] || '', ol.renk === 'kr' || ol.renk === 'mv' ? ol.renk : '', false, 2000);
+  }
+}
+
+function mesaj(m) { bildir(m, '', '', false, 2200); }
+
+/* ---------- ONAY PENCERESİ ---------- */
+let onayCozum = null;
+function onayIste(metin, evetYazi) {
+  return new Promise(res => {
+    if (onayCozum) onayCozum(false);
+    $('onay-yazi').textContent = metin;
+    $('onay-evet').textContent = evetYazi || 'Evet';
+    $('onay-modal').classList.add('goster');
+    onayCozum = v => { $('onay-modal').classList.remove('goster'); onayCozum = null; res(v); };
+  });
+}
+$('onay-evet').addEventListener('click', () => { if (onayCozum) onayCozum(true); });
+$('onay-hayir').addEventListener('click', () => { if (onayCozum) onayCozum(false); });
+
+/* ---------- EYLEMLER ---------- */
+function kartTik(i) {
+  if (sec === i) { onayla(); return; }
+  sec = i;
+  render();
+}
+
+async function onayla() {
+  if (sec === null) return;
+  const i = sec;
+  sec = null;
+  const r = await api('/api/hamle', {i});
+  if (!r.ok) mesaj(r.hata || 'Hamle yapılamadı');
+  yokla();
+}
+
+async function pas() {
+  if (!(await onayIste('Tur pas geçilsin mi?', 'Pas geç'))) return;
+  const r = await api('/api/pas', {});
+  if (!r.ok) mesaj(r.hata || 'Pas geçilemedi');
+  yokla();
+}
+
+async function yeniOyun() {
+  menuKapat();
+  if (!(await onayIste('Yeni oyun başlatılsın mı? Mevcut oyun silinir.', 'Başlat'))) return;
+  const r = await api('/api/yeni', {});
+  if (!r.ok) mesaj(r.hata || 'Başlatılamadı');
+  yokla();
+}
+
+async function rolSec(rol) {
+  const r = await api('/api/rol', {rol});
+  if (!r.ok) mesaj(r.hata || 'Rol alınamadı');
+  sec = null;
+  yokla();
+}
+
+/* ---------- MENÜ, TAM EKRAN, QR ---------- */
+function menuKapat() { $('menu').classList.add('gizli'); }
+
+function tamEkran() {
+  menuKapat();
+  const d = document.documentElement;
+  if (!document.fullscreenElement) {
+    const p = d.requestFullscreen ? d.requestFullscreen() : Promise.reject();
+    p.then(() => { if (screen.orientation && screen.orientation.lock) return screen.orientation.lock('landscape'); })
+     .catch(() => {});
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
+  }
+}
+
+let qrYapildi = false;
+function qrAc() {
+  menuKapat();
+  const url = location.origin + '/oyuncu.html';
+  $('qr-url').textContent = url;
+  if (!qrYapildi && window.QRCode) {
+    new QRCode($('qrcode'), {text:url, width:170, height:170, colorDark:'#000000', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.L});
+    qrYapildi = true;
+  }
+  $('qr-modal').classList.add('goster');
+}
+
+async function rolDegistir() {
+  menuKapat();
+  // Oyun başladıysa kaptan/spymaster rolünü bırakırken onay iste (oyun başlamadan serbest)
+  const ben = S && S.ben;
+  const oyunBasladi = S && S.oyun && !S.oyun.bitti && S.oyun.kartlar.some(c => c.a);
+  const tekilRol = ben && (ben.endsWith('Kaptan') || ben.endsWith('Spy'));
+  if (oyunBasladi && tekilRol && !(await onayIste('Oyun başladı. Rolü bırakırsan başkası alabilir. Emin misin?', 'Rolü bırak'))) return;
+  rolSec(null);
+}
+
+document.querySelectorAll('.rol').forEach(b => b.addEventListener('click', () => rolSec(b.dataset.rol)));
+$('r-fs').addEventListener('click', tamEkran);
+$('r-qr').addEventListener('click', qrAc);
+$('m-fs').addEventListener('click', tamEkran);
+$('m-qr').addEventListener('click', qrAc);
+$('m-rol').addEventListener('click', rolDegistir);
+$('m-yeni').addEventListener('click', yeniOyun);
+$('btn-menu').addEventListener('click', e => { e.stopPropagation(); $('menu').classList.toggle('gizli'); });
+$('btn-onay').addEventListener('click', onayla);
+$('btn-pas').addEventListener('click', pas);
+$('btn-tekrar').addEventListener('click', yeniOyun);
+$('btn-tahta').addEventListener('click', () => { kazKapali = true; render(); });
+$('qr-kapat').addEventListener('click', () => $('qr-modal').classList.remove('goster'));
+document.addEventListener('click', e => { if (!e.target.closest('#menu') && !e.target.closest('#btn-menu')) menuKapat(); });
+
+/* ---------- EKRANIN AÇIK KALMASI ---------- */
+let wl = null;
+async function uyanik() {
+  try {
+    if ('wakeLock' in navigator && !wl) {
+      wl = await navigator.wakeLock.request('screen');
+      wl.addEventListener('release', () => { wl = null; });
+    }
+  } catch(e) {}
+}
+document.addEventListener('click', uyanik);
+document.addEventListener('touchstart', uyanik, {passive:true});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { uyanik(); yokla(); } });
+
+/* ---------- BAŞLAT ---------- */
+setInterval(yokla, 1000);
+yokla();
+</script>
+</body>
+</html>
