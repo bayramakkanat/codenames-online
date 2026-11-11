@@ -49,7 +49,7 @@
 
   /* OYUN EKRANI */
   #ekran-oyun{flex:1;min-height:0;display:flex;flex-direction:column}
-  .ust{display:flex;align-items:center;gap:clamp(8px,1.6vh,18px);height:var(--u);padding:0 clamp(10px,2vh,24px);background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0}
+  .ust{display:flex;align-items:center;gap:clamp(8px,1.6vh,18px);height:var(--u);padding:0 clamp(10px,2vh,24px);background:var(--sur);position:relative;z-index:5;border-bottom:3px solid var(--bdr);transition:border-color .3s;flex-shrink:0}
   .chip{font-size:clamp(15px,3vh,30px);font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:.25em .8em;border-radius:16px;border:1.5px solid;white-space:nowrap}
   .chip.kr{color:var(--kr-l);border-color:var(--kr-l);background:rgba(231,76,60,.12)}
   .chip.mv{color:var(--mv-l);border-color:var(--mv-l);background:rgba(41,128,185,.12)}
@@ -59,8 +59,15 @@
   .sk span{font-size:clamp(12px,1.9vh,20px);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim)}
   .sk.aktif{opacity:1}
   #s-kr b{color:var(--kr-l)} #s-mv b{color:var(--mv-l)}
-  #s-kr.aktif{background:rgba(231,76,60,.2);border-color:var(--kr-l)}
-  #s-mv.aktif{background:rgba(41,128,185,.22);border-color:var(--mv-l)}
+  #s-kr.aktif{background:rgba(231,76,60,.2);border-color:var(--kr-l);animation:sira-kr 1.8s ease-in-out infinite}
+  #s-mv.aktif{background:rgba(41,128,185,.22);border-color:var(--mv-l);animation:sira-mv 1.8s ease-in-out infinite}
+  @keyframes sira-kr{0%,100%{box-shadow:0 0 4px rgba(231,76,60,.35)}50%{box-shadow:0 0 14px 1px rgba(231,76,60,.85)}}
+  @keyframes sira-mv{0%,100%{box-shadow:0 0 4px rgba(41,128,185,.35)}50%{box-shadow:0 0 14px 1px rgba(41,128,185,.9)}}
+  /* Sıra hangi takımdaysa üst ve alt çizgi o takımın renginde olur: herkes bir bakışta görür */
+  #ekran-oyun[data-sira="kr"] .ust{border-bottom-color:var(--kr-l)}
+  #ekran-oyun[data-sira="mv"] .ust{border-bottom-color:var(--mv-l)}
+  #ekran-oyun[data-sira="kr"] .alt-serit{border-top-color:var(--kr-l)}
+  #ekran-oyun[data-sira="mv"] .alt-serit{border-top-color:var(--mv-l)}
   .ust button{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text);border-radius:8px;padding:clamp(5px,1vh,12px) clamp(12px,2vh,24px);font-size:clamp(15px,3vh,28px);font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
   #btn-onay{background:var(--gold);border-color:var(--gold);color:#111}
   #btn-menu{padding:5px 10px;font-size:clamp(18px,3.6vh,32px);line-height:1}
@@ -311,6 +318,7 @@ function renderOyun() {
   $('n-mv').textContent = o.mvH - o.mv;
   $('s-kr').classList.toggle('aktif', o.sira === 'kr' && !o.bitti);
   $('s-mv').classList.toggle('aktif', o.sira === 'mv' && !o.bitti);
+  $('ekran-oyun').dataset.sira = o.bitti ? '' : o.sira;
 
   $('btn-pas').classList.toggle('gizli', !tikla);
   $('btn-onay').classList.toggle('gizli', !(tikla && sec !== null));
