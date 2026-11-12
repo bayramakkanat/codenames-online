@@ -229,6 +229,9 @@ const $ = id => document.getElementById(id);
 // Bu telefonun kimliği (sayfa yenilense de rol bu kimlikle hatırlanır)
 let CID = null;
 try { CID = localStorage.getItem('cn_id'); } catch(e) {}
+// Aynı bilgisayarda birden fazla rol denemek için: /oyuncu.html?kimlik=kirmizi gibi (her sekme ayrı kişi sayılır)
+const _kimlik = new URLSearchParams(location.search).get('kimlik');
+if (_kimlik && /^[A-Za-z0-9_-]{1,30}$/.test(_kimlik)) CID = 'x_' + _kimlik;
 if (!CID) {
   CID = 'p' + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
   try { localStorage.setItem('cn_id', CID); } catch(e) {}
